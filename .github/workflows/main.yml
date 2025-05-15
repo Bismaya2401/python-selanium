@@ -30,7 +30,7 @@ jobs:
           sudo apt-get install -y chromium-browser chromium-chromedriver
           sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/local/bin/chromedriver
 
-      - name: Run tests with Allure
+      - name: Run Selenium tests with Allure results
         run: pytest --alluredir=allure-results
 
       - name: Download Allure CLI
@@ -39,21 +39,22 @@ jobs:
           unzip -o allure.zip -d allure-cli
           chmod +x allure-cli/allure-2.27.0/bin/allure
 
-      - name: Generate Allure HTML Report
+      - name: Generate Allure HTML report
         run: |
           ./allure-cli/allure-2.27.0/bin/allure generate allure-results -o allure-report --clean
           mkdir -p docs/allure-report
           cp -r allure-report/* docs/allure-report/
 
-      - name: Commit Allure HTML to GitHub Pages
+      - name: Commit Allure report to GitHub Pages
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main
           git add docs/
           git commit -m "Update Allure report [skip ci]" || echo "No changes to commit"
-          git push origin main
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
 
-      - name: Send email with report link
+      - name: Send email with report link via Gmail
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -65,7 +66,7 @@ jobs:
           body: |
             Hello Team,
 
-            The Selenium GitHub Action has completed with status: **${{ job.status }}**.
+            ✅ The Selenium GitHub Action has completed with status: **${{ job.status }}**.
 
             📊 View the Allure Report:
             👉 https://bismaya2401.github.io/python-selanium/allure-report/index.html
