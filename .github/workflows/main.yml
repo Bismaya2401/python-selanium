@@ -69,7 +69,7 @@ jobs:
             ✅ The Selenium GitHub Action has completed with status: **${{ job.status }}**.
 
             📊 View the Allure Report:
-            👉 https://bismaya2401.github.io/python-selanium/allure-report/index.html
+            👉 https://bismaya2401.github.io/python-selenium/allure-report/index.html
 
             Regards,  
             GitHub CI
