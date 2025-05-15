@@ -1,4 +1,4 @@
-name: Selenium Tests with Allure and Gmail Notification
+name: Selenium Tests with Allure HTML + GitHub Pages + Email
 
 on:
   push:
@@ -19,31 +19,42 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Install Chromium and ChromeDriver (Ubuntu 24.04 compatible)
+      - name: Install Chromium and ChromeDriver
         run: |
           sudo apt-get update
           sudo apt-get install -y chromium-browser chromium-chromedriver
           sudo ln -sf /usr/lib/chromium-browser/chromedriver /usr/local/bin/chromedriver
 
-      - name: Run tests with Pytest and generate Allure results
+      - name: Run Selenium tests with Allure results
+        run: pytest --alluredir=allure-results
+
+      - name: Download Allure CLI
         run: |
-          pytest --alluredir=allure-results
+          curl -L -o allure.zip https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.zip
+          unzip -o allure.zip -d allure-cli
+          chmod +x allure-cli/allure-2.27.0/bin/allure
 
-      - name: Zip Allure results
-        run: zip -r allure-results.zip allure-results
+      - name: Generate Allure HTML report
+        run: |
+          ./allure-cli/allure-2.27.0/bin/allure generate allure-results -o allure-report --clean
+          mkdir -p docs/allure-report
+          cp -r allure-report/* docs/allure-report/
 
-      - name: Upload Allure results artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results
-          path: allure-results
+      - name: Commit Allure report to GitHub Pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main
+          git add docs/
+          git commit -m "Update Allure report [skip ci]" || echo "No changes to commit"
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
 
-      - name: Send Allure results via Gmail
+      - name: Send email with report link via Gmail
         if: always()
         uses: dawidd6/action-send-mail@v3
         with:
@@ -51,15 +62,16 @@ jobs:
           server_port: 465
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: Selenium Test Report - ${{ job.status }}
+          subject: Allure Report - ${{ job.status }}
           body: |
             Hello Team,
 
-            The Selenium test job finished with status: **${{ job.status }}**.
-            Please find the attached Allure report archive.
+            ✅ The Selenium GitHub Action has completed with status: **${{ job.status }}**.
+
+            📊 View the Allure Report:
+            👉 https://bismaya2401.github.io/python-selanium/allure-report/index.html
 
             Regards,  
-            GitHub Actions
+            GitHub CI
           to: ${{ secrets.EMAIL_RECEIVER }}
           from: GitHub CI <${{ secrets.EMAIL_USERNAME }}>
-          attachments: allure-results.zip
