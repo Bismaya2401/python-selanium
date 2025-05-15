@@ -4,7 +4,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 @pytest.fixture(scope="function")
-def setup_browser():
+def setup_browser(): 
     options = Options()
     options.binary_location = "/usr/bin/chromium-browser"  # 🔧 tell Selenium where Chromium is
 
