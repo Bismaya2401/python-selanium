@@ -1,26 +1,24 @@
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-import os
-import allure
+from selenium.webdriver.chrome.service import Service
 
 @pytest.fixture(scope="function")
 def setup_browser():
     options = Options()
-    
-    # ❗️REMOVE Linux-only line
-    # options.binary_location = "/usr/bin/chromium-browser"  <-- REMOVE this
+    options.binary_location = "/usr/bin/chromium-browser"  # 🔧 tell Selenium where Chromium is
 
-    options.add_argument("--incognito")
-    options.add_argument("--start-maximized")
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
-    driver = webdriver.Chrome(options=options)  # This will now auto-detect your local Chrome
+    service = Service("/usr/local/bin/chromedriver")  # 🔧 path to installed chromedriver
+
+    driver = webdriver.Chrome(service=service, options=options)
     yield driver
     driver.quit()
+
 
 # Screenshot on failure
 @pytest.hookimpl(hookwrapper=True)
