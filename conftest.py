@@ -7,7 +7,9 @@ import allure
 @pytest.fixture(scope="function")
 def setup_browser():
     options = Options()
-    options.binary_location = "/usr/bin/chromium-browser"  # 👈 Tell Selenium to use Chromium
+    
+    # ❗️REMOVE Linux-only line
+    # options.binary_location = "/usr/bin/chromium-browser"  <-- REMOVE this
 
     options.add_argument("--incognito")
     options.add_argument("--start-maximized")
@@ -16,7 +18,7 @@ def setup_browser():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(options=options)  # This will now auto-detect your local Chrome
     yield driver
     driver.quit()
 
@@ -31,8 +33,4 @@ def pytest_runtest_makereport(item, call):
             os.makedirs("screenshots", exist_ok=True)
             screenshot_path = f"screenshots/{item.name}_failure.png"
             driver.save_screenshot(screenshot_path)
-            allure.attach.file(
-                screenshot_path,
-                name="screenshot",
-                attachment_type=allure.attachment_type.PNG
-            )
+            allure.attach.file(screenshot_path, name="screenshot", attachment_type=allure.attachment_type.PNG)
